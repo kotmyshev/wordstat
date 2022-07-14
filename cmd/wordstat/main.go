@@ -2,29 +2,46 @@ package main
 
 import (
 	"fmt"
+	"log"
 
-	"pkg/rndstr"
+	"github.com/kotmyshev/wordstat/internal/app/wsapp"
+	"github.com/kotmyshev/wordstat/pkg/filestat"
+	"github.com/kotmyshev/wordstat/pkg/rndstr"
+)
+
+const (
+	// separators for split text to words (for filestat pkg)
+	separators = " .,:[]()!?\"\n\t\r"
+	// length of names for new files
+	fnamelen = 10
+	// randomize seed additional number
+	rndseed = 42
 )
 
 func main() {
 
-	rndslovo := rndstr.GenerateRandomString(115, 10)
+	fmt.Print("Enter URL: ")
+	inurl, err := wsapp.ReadLineFromStdIn()
 
-	/*
-		http.HandleFunc("/", reqHandler)
-
-		err := http.ListenAndServe("localhost:8080", nil)
+	if err != nil {
 		log.Fatal(err)
+	}
 
-			req := httptest.NewRequest("GET", "http://localhost:8080///example.com/foo", nil)
-			w := httptest.NewRecorder()
-			reqHandler(w, req)
-			resp := w.Result()
-			body, _ := io.ReadAll(resp.Body)
-			fmt.Println(resp.StatusCode)
-			fmt.Println(resp.Header.Get("Content-Type"))
-			fmt.Println(string(body))
-	*/
+	rndwrd := rndstr.GenerateRandomString(rndseed, fnamelen)
 
-	fmt.Println(rndslovo)
+	err = wsapp.MakeFilesFromURL(inurl, rndwrd)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(rndwrd)
+
+	stat, err := filestat.WordStatFromFile(rndwrd+".txt", separators)
+
+	wsapp.PrintStatInStdOut(stat)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
